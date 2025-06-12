@@ -6,8 +6,10 @@ import java.util.Scanner;
 public class BrickLayout {
 
     private ArrayList<Brick> bricks;
+    private ArrayList<Brick> fallingBricks;
     private int[][] brickLayout;
     private int cols;
+    private int[][] tempDisplay;
 
     public BrickLayout(String fileName, int cols, boolean dropAllBricks) {
         this.cols = cols;
@@ -29,43 +31,74 @@ public class BrickLayout {
     }
 
     public void doOneBrick() {
-        if (bricks.size() != 0) {
-            Brick b = bricks.remove(0);
-            int start = b.getStart();
-            int end = b.getEnd();
+        Brick b = bricks.remove(0);
+        int start = b.getStart();
+        int end = b.getEnd();
 
-            int lowestRow = findLowestAvailableRow(start, end);
+        int row = tempDisplay.length - 1;
+        boolean placed = false;
 
-            for (int c = start; c <= end; c++) {
-                brickLayout[lowestRow][c] = 1;
-            }
-
-            b.setHeight(brickLayout.length - lowestRow - 1);
-        }
-    }
-
-    private int findLowestAvailableRow(int start, int end) {
-        int lowestRow = brickLayout.length - 1;
-        boolean keepSearching = true;
-
-        for (int r = brickLayout.length - 1; r >= 0 && keepSearching; r--) {
+        while (!placed && row >= 0) {
             boolean canPlace = true;
 
-            for (int c = start; c <= end && canPlace; c++) {
-                if (brickLayout[r][c] != 0) {
+            for (int col = start; col <= end; col++) {
+                if (tempDisplay[row][col] == 1) {
                     canPlace = false;
+                    break;
                 }
             }
 
             if (canPlace) {
-                lowestRow = r;
-            } else {
-                keepSearching = false;
+                boolean canFitAbove = true;
+
+                for (int r = row - 1; r >= 0; r--) {
+                    for (int col = start; col <= end; col++) {
+                        if (tempDisplay[r][col] == 1) {
+                            canFitAbove = false;
+                            break;
+                        }
+                    }
+                    if (!canFitAbove)
+                        break;
+                }
+
+                if (canFitAbove || row == 0) {
+                    for (int col = start; col <= end; col++) {
+                        tempDisplay[row][col] = 1;
+                    }
+                    placed = true;
+                    b.setPlaced(true);
+                    b.setEndingRow(row);
+                    fallingBricks.add(b);
+                }
+                else {
+                    row--;
+                }
+            }
+            else {
+                row--;
             }
         }
-
-        return lowestRow;
     }
+
+    public void bricksFalling() {
+        for (Brick brick : fallingBricks) {
+            if (brick.isPlaced()) {
+                for (int col = brick.getStart(); col <= brick.getEnd(); col++) {
+                    brickLayout[brick.getCurrRow()][col] = 0;
+                }
+                brick.setCurrRow(brick.getCurrRow() + 1);
+
+                for (int col = brick.getStart(); col <= brick.getEnd(); col++) {
+                    brickLayout[brick.getCurrRow()][col] = 1;
+                }
+                if (brick.getCurrRow() == brick.getEndingRow()) {
+                    brick.setPlaced(false);
+                }
+            }
+        }
+    }
+
 
     public ArrayList<String> getFileData(String fileName) {
         File f = new File(fileName);
@@ -85,7 +118,7 @@ public class BrickLayout {
     }
 
     public void printBrickLayout() {
-        for (int r = brickLayout.length - 1; r >= 0; r--) {
+        for (int r = 0; r < brickLayout.length; r++) {
             for (int c = 0; c < brickLayout[0].length; c++) {
                 System.out.print(brickLayout[r][c] + " ");
             }
@@ -100,5 +133,13 @@ public class BrickLayout {
         else {
             return false;
         }
+    }
+
+    public int[][] getBrickLayout() {
+        return brickLayout;
+    }
+
+    public int[][] getTempDisplay() {
+        return tempDisplay;
     }
 }

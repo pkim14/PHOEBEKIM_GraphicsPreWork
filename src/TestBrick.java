@@ -1,6 +1,8 @@
+import com.sun.tools.javac.Main;
+
 public class TestBrick {
     public static void main(String[] args) {
-        BrickLayout b = new BrickLayout("src/bricks", 7, true);
-        b.printBrickLayout();
+        MainFrame frame = new MainFrame("Not Tetris");
+
     }
 }
