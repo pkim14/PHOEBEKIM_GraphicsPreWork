@@ -15,6 +15,7 @@ public class BrickLayout {
         this.cols = cols;
         ArrayList<String> fileData = getFileData(fileName);
         bricks = new ArrayList<Brick>();
+        fallingBricks = new ArrayList<Brick>();
         for (String line : fileData) {
             String[] points = line.split(",");
             int start = Integer.parseInt(points[0]);
@@ -23,6 +24,7 @@ public class BrickLayout {
             bricks.add(b);
         }
         brickLayout = new int[bricks.size()][cols];
+        tempDisplay = new int[bricks.size()][cols];
         if (dropAllBricks) {
             while (bricks.size() != 0) {
                 doOneBrick();
